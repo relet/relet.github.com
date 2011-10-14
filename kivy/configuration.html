@@ -16,7 +16,7 @@
       
       <title>
         kivyMaps » 
-        Background tile servers
+        The minimal configuration
       </title>
       
       
@@ -70,46 +70,73 @@
 <p>The example application of kivyMaps displays some rather vanilla maps like the OpenStreetMap and Microsoft Bing tiles.</p>
 <p>To display other maps and WMS services in your application, you will have to work with the python files that define the application. Background maps are defined as instances of the <code>TileServer</code> class, overlays are instances of <code>WMSOverlayServer</code>
 In the following are some code examples in lieu of a proper documentation:</p>
+<h1>The minimal configuration</h1>
+<p>The following is a simple app that shows only the kivyMaps widget, and OpenStreetMap as mapping provider:</p>
+<div class="codehilite"><pre><span class="nb">import</span> <span class="n">kivy</span>
+<span class="n">kivy</span><span class="o">.</span><span class="nb">require</span><span class="p">(</span><span class="s">&#39;1.0.7&#39;</span><span class="p">)</span>
+
+<span class="n">from</span> <span class="n">kivy</span><span class="o">.</span><span class="n">app</span> <span class="nb">import</span> <span class="n">App</span>
+<span class="n">from</span> <span class="n">kivy</span><span class="o">.</span><span class="n">uix</span><span class="o">.</span><span class="n">floatlayout</span> <span class="nb">import</span> <span class="n">FloatLayout</span>
+<span class="n">from</span> <span class="n">MapViewer</span> <span class="nb">import</span> <span class="n">MapViewer</span>
+
+<span class="n">class</span> <span class="n">KVMaps</span><span class="p">(</span><span class="n">App</span><span class="p">):</span>
+  <span class="n">def</span> <span class="n">build</span><span class="p">(</span><span class="n">self</span><span class="p">):</span>
+    <span class="n">layout</span> <span class="o">=</span> <span class="n">FloatLayout</span><span class="p">()</span>
+    <span class="n">self</span><span class="o">.</span><span class="n">mv</span> <span class="o">=</span> <span class="n">MapViewer</span><span class="p">(</span><span class="n">maptype</span><span class="o">=</span><span class="s">&quot;Roadmap&quot;</span><span class="p">,</span> <span class="n">provider</span><span class="o">=</span><span class="s">&quot;openstreetmap&quot;</span><span class="p">)</span>
+    <span class="n">layout</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">self</span><span class="o">.</span><span class="n">mv</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">layout</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="n">in</span> <span class="p">(</span><span class="s">&#39;__android__&#39;</span><span class="p">,</span><span class="s">&#39;__main__&#39;</span><span class="p">):</span>
+  <span class="n">KVMaps</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+
+
 <h1>Background tile servers</h1>
 <p>Initialize the MapViewer widget with the provider and map type of choice. Implementations are provided for some common tile servers and WMS-T:</p>
-<pre><code>MapViewer(maptype="Roadmap", provider="openstreetmap")
-</code></pre>
+<div class="codehilite"><pre><span class="n">MapViewer</span><span class="p">(</span><span class="n">maptype</span><span class="o">=</span><span class="s">&quot;Roadmap&quot;</span><span class="p">,</span> <span class="n">provider</span><span class="o">=</span><span class="s">&quot;openstreetmap&quot;</span><span class="p">)</span>
+</pre></div>
+
+
 <p>Custom WMS-T services can be defined. The following example defines a WMS-T with a custom bounding box and projection which defines the tiling scheme:<br />
 </p>
-<pre><code>class OpenCacheTileServer(WMSTileServer):
-    provider_name = 'opencache'
-    provider_host = 'opencache.statkart.no'
-    available_maptype = dict(topo2='topo2', 
-                             topo2graatone='topo2graatone', 
-                             toporaster2='toporaster2', 
-                             sjo_hovedkart2 = 'sjo_hovedkart2', 
-                             europa='europa')
+<div class="codehilite"><pre><span class="n">class</span> <span class="n">OpenCacheTileServer</span><span class="p">(</span><span class="n">WMSTileServer</span><span class="p">):</span>
+    <span class="n">provider_name</span> <span class="o">=</span> <span class="s">&#39;opencache&#39;</span>
+    <span class="n">provider_host</span> <span class="o">=</span> <span class="s">&#39;opencache.statkart.no&#39;</span>
+    <span class="n">available_maptype</span> <span class="o">=</span> <span class="n">dict</span><span class="p">(</span><span class="n">topo2</span><span class="o">=</span><span class="s">&#39;topo2&#39;</span><span class="p">,</span> 
+                             <span class="n">topo2graatone</span><span class="o">=</span><span class="s">&#39;topo2graatone&#39;</span><span class="p">,</span> 
+                             <span class="n">toporaster2</span><span class="o">=</span><span class="s">&#39;toporaster2&#39;</span><span class="p">,</span> 
+                             <span class="n">sjo_hovedkart2</span> <span class="o">=</span> <span class="s">&#39;sjo_hovedkart2&#39;</span><span class="p">,</span> 
+                             <span class="n">europa</span><span class="o">=</span><span class="s">&#39;europa&#39;</span><span class="p">)</span>
 
-    def __init__(self, **kwargs):
-      WMSTileServer.__init__(self)
-      self.initFromGetCapabilities('http://opencache.statkart.no', 
-                                   '/gatekeeper/gk/gk.open', 
-                                   srs='EPSG:32633', 
-                                   layer = 'topo2')
-      self.customBounds = True
-      self.bounds       = (-2500000, 3500000, 3045984, 9045984)
-</code></pre>
+    <span class="n">def</span> <span class="n">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+      <span class="n">WMSTileServer</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">)</span>
+      <span class="n">self</span><span class="o">.</span><span class="n">initFromGetCapabilities</span><span class="p">(</span><span class="s">&#39;http://opencache.statkart.no&#39;</span><span class="p">,</span> 
+                                   <span class="s">&#39;/gatekeeper/gk/gk.open&#39;</span><span class="p">,</span> 
+                                   <span class="n">srs</span><span class="o">=</span><span class="s">&#39;EPSG:32633&#39;</span><span class="p">,</span> 
+                                   <span class="n">layer</span> <span class="o">=</span> <span class="s">&#39;topo2&#39;</span><span class="p">)</span>
+      <span class="n">self</span><span class="o">.</span><span class="n">customBounds</span> <span class="o">=</span> <span class="n">True</span>
+      <span class="n">self</span><span class="o">.</span><span class="n">bounds</span>       <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">2500000</span><span class="p">,</span> <span class="mi">3500000</span><span class="p">,</span> <span class="mi">3045984</span><span class="p">,</span> <span class="mi">9045984</span><span class="p">)</span>
+</pre></div>
+
+
 <h1>Overlay WMS services are defined using similar parameters:</h1>
-<pre><code>class NorgeIBilder(WMSOverlayServer):
-    provider_name = 'geonorge'
-    provider_host = 'wms.geonorge.no'
+<div class="codehilite"><pre><span class="n">class</span> <span class="n">NorgeIBilder</span><span class="p">(</span><span class="n">WMSOverlayServer</span><span class="p">):</span>
+    <span class="n">provider_name</span> <span class="o">=</span> <span class="s">&#39;geonorge&#39;</span>
+    <span class="n">provider_host</span> <span class="o">=</span> <span class="s">&#39;wms.geonorge.no&#39;</span>
 
-    def __init__(self, **kwargs):
-      super(WMSOverlayServer, self).__init__()
-      self.initFromGetCapabilities('http://wms.geonorge.no', 
-                                   '/skwms1/wms.norgeibilder', 
-                                   layer="SatelliteImage,OrtofotoAlle", 
-                                   srs="EPSG:32633")
-      self.customBounds = True
-      self.bounds       = (-2500000, 3500000, 3045984, 9045984)
-      self.max_alpha = 1    # range [0.0-1.0]
-                            # defines the opacity of the overlay after fade-in
-</code></pre>
+    <span class="n">def</span> <span class="n">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+      <span class="n">super</span><span class="p">(</span><span class="n">WMSOverlayServer</span><span class="p">,</span> <span class="n">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+      <span class="n">self</span><span class="o">.</span><span class="n">initFromGetCapabilities</span><span class="p">(</span><span class="s">&#39;http://wms.geonorge.no&#39;</span><span class="p">,</span> 
+                                   <span class="s">&#39;/skwms1/wms.norgeibilder&#39;</span><span class="p">,</span> 
+                                   <span class="n">layer</span><span class="o">=</span><span class="s">&quot;SatelliteImage,OrtofotoAlle&quot;</span><span class="p">,</span> 
+                                   <span class="n">srs</span><span class="o">=</span><span class="s">&quot;EPSG:32633&quot;</span><span class="p">)</span>
+      <span class="n">self</span><span class="o">.</span><span class="n">customBounds</span> <span class="o">=</span> <span class="n">True</span>
+      <span class="n">self</span><span class="o">.</span><span class="n">bounds</span>       <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">2500000</span><span class="p">,</span> <span class="mi">3500000</span><span class="p">,</span> <span class="mi">3045984</span><span class="p">,</span> <span class="mi">9045984</span><span class="p">)</span>
+      <span class="n">self</span><span class="o">.</span><span class="n">max_alpha</span> <span class="o">=</span> <span class="mi">1</span>    <span class="c1"># range [0.0-1.0]</span>
+                            <span class="c1"># defines the opacity of the overlay after fade-in</span>
+</pre></div>
+
+
 <p>To enable or disable an overlay, append or remove the class to/from the list of overlays defined in <code>MapViewer.map.overlays</code>.</p>
 <h2>parameters</h2>
 <h1>MapViewer</h1>
