@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN"
+    "http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"
+      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+      xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+      xmlns:dc="http://purl.org/dc/elements/1.1/"
+      xmlns:foaf="http://xmlns.com/foaf/0.1/">
+  
+  <head>
+    
+    
+      
+        <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+      
+      
+      <title>
+        kivyMaps » 
+        Background tile servers
+      </title>
+      
+      
+        <!-- YUI CSS reset, fonts, base -->
+        <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/combo?3.0.0/build/cssreset/reset-min.css&amp;3.0.0/build/cssfonts/fonts-min.css&amp;3.0.0/build/cssbase/base-min.css" media="screen, projection" />
+        
+        <link rel="stylesheet" type="text/css" href="media/css/style.css" media="screen, projection" />
+        <link rel="stylesheet" type="text/css" href="media/css/pygments.css" media="screen, projection" />
+      
+      
+      
+      
+      
+        
+      
+    
+  </head>
+  
+  <body >
+    
+      
+      
+        
+          
+  
+    <ol id="breadcrumbs">
+      
+        <li class="crumb-0 not-last">
+          
+            <a href="./">index</a>
+          
+        </li>
+      
+        <li class="crumb-1 last">
+          
+            configuration
+          
+        </li>
+      
+    </ol> <!-- ol#breadcrumbs -->
+  
+
+        
+      
+      
+      <div id="content">
+        
+        
+        
+        <h2>configuring kivyMaps</h2>
+<p>The example application of kivyMaps displays some rather vanilla maps like the OpenStreetMap and Microsoft Bing tiles.</p>
+<p>To display other maps and WMS services in your application, you will have to work with the python files that define the application. Background maps are defined as instances of the <code>TileServer</code> class, overlays are instances of <code>WMSOverlayServer</code>
+In the following are some code examples in lieu of a proper documentation:</p>
+<h1>Background tile servers</h1>
+<p>Initialize the MapViewer widget with the provider and map type of choice. Implementations are provided for some common tile servers and WMS-T:</p>
+<pre><code>MapViewer(maptype="Roadmap", provider="openstreetmap")
+</code></pre>
+<p>Custom WMS-T services can be defined. The following example defines a WMS-T with a custom bounding box and projection which defines the tiling scheme:<br />
+</p>
+<pre><code>class OpenCacheTileServer(WMSTileServer):
+    provider_name = 'opencache'
+    provider_host = 'opencache.statkart.no'
+    available_maptype = dict(topo2='topo2', 
+                             topo2graatone='topo2graatone', 
+                             toporaster2='toporaster2', 
+                             sjo_hovedkart2 = 'sjo_hovedkart2', 
+                             europa='europa')
+
+    def __init__(self, **kwargs):
+      WMSTileServer.__init__(self)
+      self.initFromGetCapabilities('http://opencache.statkart.no', 
+                                   '/gatekeeper/gk/gk.open', 
+                                   srs='EPSG:32633', 
+                                   layer = 'topo2')
+      self.customBounds = True
+      self.bounds       = (-2500000, 3500000, 3045984, 9045984)
+</code></pre>
+<h1>Overlay WMS services are defined using similar parameters:</h1>
+<pre><code>class NorgeIBilder(WMSOverlayServer):
+    provider_name = 'geonorge'
+    provider_host = 'wms.geonorge.no'
+
+    def __init__(self, **kwargs):
+      super(WMSOverlayServer, self).__init__()
+      self.initFromGetCapabilities('http://wms.geonorge.no', 
+                                   '/skwms1/wms.norgeibilder', 
+                                   layer="SatelliteImage,OrtofotoAlle", 
+                                   srs="EPSG:32633")
+      self.customBounds = True
+      self.bounds       = (-2500000, 3500000, 3045984, 9045984)
+      self.max_alpha = 1    # range [0.0-1.0]
+                            # defines the opacity of the overlay after fade-in
+</code></pre>
+<p>To enable or disable an overlay, append or remove the class to/from the list of overlays defined in <code>MapViewer.map.overlays</code>.</p>
+<h2>parameters</h2>
+<h1>MapViewer</h1>
+<ul>
+<li><code>provider</code> - the identifier by which the tileserver was registered (using <code>Tileserver.register</code>)</li>
+<li>
+<p><code>maptype</code> - every tileserver can provide a dictionary of map types to display</p>
+</li>
+<li>
+<p><code>close_on_idle</code> - Boolean - if enabled, the application will close after 300 seconds of inactivity.</p>
+</li>
+<li><code>status_cb</code> - Allows to provide a callback method to read currently displayed tile count and number of tiles in the loading queue.</li>
+</ul>
+<h1>WMS*Server</h1>
+<ul>
+<li><code>provider_name</code> - identifier of the map provider, currently not in use</li>
+<li>
+<p><code>provider_host</code> - the request URL will be assembled using this hostname</p>
+</li>
+<li>
+<p><code>initFromGetCapabilities</code> - this method allows to send a GetCapabilities request to the server. If only the URL parameters are given, 
+    the capabilities will be logged to stdout and the first one chosen by default. If the parameters <code>layer</code> and <code>srs</code> are given, the 
+    selected layer and SRS will be requested. A parameter <code>index</code> may be used if the name of the layer is unknown, but note that it is 
+    not a reliable identifier.</p>
+</li>
+<li>
+<p><code>customBounds</code> / <code>bounds</code> - If enabled, the coordinate system will be mapped to these bounds. </p>
+</li>
+<li><code>max_alpha</code> - Overlays will be displayed with the given opacity</li>
+</ul>
+        
+        
+        
+        
+        <hr class="clear" />
+      </div> <!-- div#content -->
+      
+      
+      <div id="footer">
+        <p>
+          
+            kivyMaps —
+          
+          Powered by <a href="http://markdoc.org/">Markdoc</a>.
+        </p>
+      </div>
+      
+    
+    
+    
+    <hr class="clear" />
+  </body>
+</html>
